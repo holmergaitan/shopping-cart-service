@@ -20,13 +20,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="78f6bea8-f598-40ad-ba7f-8a20512ee239" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shopping-cart-service.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/config/Server.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/controller/CartController.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/domain/Cart.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/config/Config.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/config/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/controller/CartController.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/controller/controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/domain/Cart.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/domain/cart.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,6 +100,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
