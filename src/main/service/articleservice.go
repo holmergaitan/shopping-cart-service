@@ -7,7 +7,7 @@ import (
 
 var ArticlesContent = client.Cache
 
-func LoadArticles() map[string]domain.Article {
+func LoadArticles() map[string]domain.Item {
 	ArticlesContent.Load()
 	return ArticlesContent.Articles
 }

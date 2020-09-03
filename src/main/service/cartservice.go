@@ -8,7 +8,7 @@ import (
 
 var cartDao = dao.CartDao{Carts: make(map[uuid.UUID]domain.Cart)}
 
-func Create(c *domain.Cart) *domain.Cart {
+func CreateOrUpdate(c *domain.Cart) *domain.Cart {
 	return cartDao.CreateOrUpdate(c)
 }
 

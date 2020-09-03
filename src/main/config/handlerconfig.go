@@ -15,6 +15,9 @@ func New() Config {
 	r := mux.NewRouter()
 	r.HandleFunc("/carts", a.GetCarts).Methods(http.MethodGet)
 	r.HandleFunc("/carts", a.CreateCart).Methods(http.MethodPost)
+	r.HandleFunc("/carts/{id}/items", a.GetItems).Methods(http.MethodGet)
+	r.HandleFunc("/carts/{id}/items", a.DeleteItems).Methods(http.MethodDelete)
+	r.HandleFunc("/carts/{id}/items/{itemId}", a.DeleteItem).Methods(http.MethodDelete)
 	r.HandleFunc("/carts/{id}/items", a.AddItem).Methods(http.MethodPut)
 	r.HandleFunc("/articles", a.GetArticles).Methods(http.MethodGet)
 	a.ApiRouter = r

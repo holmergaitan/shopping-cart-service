@@ -8,14 +8,15 @@ import (
 	"shopping-cart-service/src/main/domain"
 )
 type ArticlesCache struct {
-	Articles map[string]domain.Article
+	Articles map[string]domain.Item
 	Loaded bool
 }
+
 type CacheInterface interface {
 	Load()
 }
 
-var Cache = ArticlesCache{Articles: make(map[string]domain.Article)}
+var Cache = ArticlesCache{Articles: make(map[string]domain.Item)}
 
 func (cache *ArticlesCache)Load(){
 	var articleList = load()
@@ -27,8 +28,8 @@ func (cache *ArticlesCache)Load(){
 	cache.Loaded = true
 }
 
-func load() []domain.Article {
-	var articles []domain.Article
+func load() []domain.Item {
+	var articles []domain.Item
 	resp, err := http.Get("http://challenge.getsandbox.com/articles")
 	if err != nil {
 		log.Fatalln(err)

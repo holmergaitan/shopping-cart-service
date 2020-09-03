@@ -29,7 +29,7 @@ func (a *Api) GetArticles(w http.ResponseWriter, r *http.Request){
 }
 
 func (a *Api) CreateCart(w http.ResponseWriter, r *http.Request){
-	cart := domain.Cart{}
+	cart := domain.Cart{Items: make(map[string]domain.Item)}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&cart); err != nil {
 		buildErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -37,25 +37,54 @@ func (a *Api) CreateCart(w http.ResponseWriter, r *http.Request){
 	}
 
 	defer r.Body.Close()
-	service.Create(&cart)
+	service.CreateOrUpdate(&cart)
 	buildResponse(w, http.StatusCreated, cart)
 }
 
 func (a *Api) AddItem(w http.ResponseWriter, r *http.Request){
 	service.LoadArticles()
 	eventID := mux.Vars(r)["id"]
-	article := domain.Article{}
+	item := domain.Item{}
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&article); err != nil {
+	if err := decoder.Decode(&item); err != nil {
 		buildErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	defer r.Body.Close()
+
 	var id, _ = uuid.Parse(eventID)
 	var cart = service.GetCart(id)
-	var articleInCache = service.ArticlesContent.Articles[article.Id]
-	cart.Articles = append(cart.Articles, articleInCache)
-	service.Create(cart)
+	var articleInCache = service.ArticlesContent.Articles[item.Id]
+	if val, ok := cart.Items[articleInCache.Id]; !ok{
+		cart.Items[articleInCache.Id] = articleInCache
+	}else{
+		val.Increment()
+	    cart.Items[articleInCache.Id] = val
+	}
+	service.CreateOrUpdate(cart)
+	buildResponse(w, http.StatusCreated, cart)
+}
+
+func (a *Api) GetItems(w http.ResponseWriter, r *http.Request){
+	cartId, _ := uuid.Parse(mux.Vars(r)["id"])
+	var cart = service.GetCart(cartId)
+	buildResponse(w, http.StatusCreated, cart.Items)
+}
+
+func (a *Api) DeleteItems(w http.ResponseWriter, r *http.Request){
+	cartId, _ := uuid.Parse(mux.Vars(r)["id"])
+	var cart = service.GetCart(cartId)
+	cart.Items = make(map[string]domain.Item)
+	service.CreateOrUpdate(cart)
+	buildResponse(w, http.StatusCreated, cart)
+}
+
+func (a *Api) DeleteItem(w http.ResponseWriter, r *http.Request) {
+	cartId, _ := uuid.Parse(mux.Vars(r)["id"])
+	itemId, _ := mux.Vars(r)["itemId"]
+	var cart = service.GetCart(cartId)
+	delete(cart.Items, itemId)
+	service.CreateOrUpdate(cart)
 	buildResponse(w, http.StatusCreated, cart)
 }
 
@@ -67,6 +96,7 @@ func buildResponse(w http.ResponseWriter, status int, payload interface{}) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+
 	w.WriteHeader(status)
 	w.Write([]byte(response))
 }

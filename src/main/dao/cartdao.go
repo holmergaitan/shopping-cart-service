@@ -6,6 +6,14 @@ import (
 	"sync"
 )
 
+type GenericDao interface {
+	Get(u uuid.UUID) *domain.Cart
+
+	CreateOrUpdate(cart *domain.Cart) *domain.Cart
+
+	RetrieveAll() []domain.Cart
+}
+
 type CartDao struct {
 	Carts map[uuid.UUID]domain.Cart
 	mux sync.Mutex
