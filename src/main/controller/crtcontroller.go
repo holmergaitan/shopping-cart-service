@@ -90,17 +90,22 @@ func (a *Api) DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 func buildResponse(w http.ResponseWriter, status int, payload interface{}) {
 	response, err := json.Marshal(payload)
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	w.Write([]byte(response))
 }
 
-func buildErrorResponse(w http.ResponseWriter, request int, s string) {
+func buildErrorResponse(w http.ResponseWriter, code int, message string) {
+	buildResponse(w, code, map[string]string{"error": message})
+}
+
+func validateCartContent(){
 
 }
