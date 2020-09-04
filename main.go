@@ -6,7 +6,6 @@ import (
 	"shopping-cart-service/src/main/config"
 )
 
-type Name string
 
 func main() {
 	s := config.New()

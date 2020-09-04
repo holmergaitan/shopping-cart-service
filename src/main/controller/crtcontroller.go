@@ -8,7 +8,7 @@ import (
 	"shopping-cart-service/src/main/domain"
 	"shopping-cart-service/src/main/service"
 )
-type Api struct {
+type  Api struct {
 	ApiRouter http.Handler
 }
 
