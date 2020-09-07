@@ -1,17 +1,17 @@
 package shoppingcart
 
 type Item struct {
-	ID     string  `json:"id" gorm:"type:string;primary_key;"`
-	Title  string  `json:"title"`
-	Price  string  `json:"price"`
+	ID     string  `gorm:"type:string;primary_key;"`
+	Title  string
+	Price  string
 	Orders []Order `gorm:"foreignKey:ItemId"`
 }
 
 type Order struct{
-	ID 			string		`json:"id" gorm:"type:string;primary_key;"`
-	ItemId 		string		`json:"item"`
+	ID 			string		`gorm:"type:string;primary_key;"`
+	ItemId 		string
 	CartId		string
-	Quantity 	int			`json:"quantity"`
+	Quantity 	int
 }
 
 func (i *Order) Increment()  {
@@ -19,7 +19,7 @@ func (i *Order) Increment()  {
 }
 
 type Cart struct {
-	ID          string  `json:"id" gorm:"type:string;primary_key;"`
-	Description string  `json:"description,omitempty" validate:"nil=false > empty=false" `
-	Orders      []Order `json:"items" gorm:"foreignKey:CartId"`
+	ID          string  `gorm:"type:string;primary_key;"`
+	Description string
+	Orders      []Order
 }
