@@ -1,4 +1,4 @@
-package main
+package shoppingcart
 
 import (
 	"bytes"
@@ -7,17 +7,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"shopping-cart-service/src/main/config"
-	"shopping-cart-service/src/main/domain"
-	"shopping-cart-service/src/main/service"
 	"strconv"
 	"testing"
 )
 
-var s config.Config
+var s Config
 
 func TestMain(m *testing.M) {
-	s = config.New()
+	s = New()
 	code := m.Run()
 	os.Exit(code)
 }
@@ -41,7 +38,7 @@ func TestApi_CreateCart(t *testing.T) {
 	response := executeRequest(request)
 	checkResponseCode(t, http.StatusCreated, response.Code)
 
-	var cart domain.Cart
+	var cart Cart
 	json.Unmarshal(response.Body.Bytes(), &cart)
 
 	if cart.Description != "Test description" {
@@ -55,7 +52,7 @@ func TestApi_CreateCart(t *testing.T) {
 
 func TestApi_DeleteItem(t *testing.T) {
 	var cart = getCartContent()
-	service.CreateOrUpdate(&cart)
+	CreateOrUpdate(&cart)
 	req, err := http.NewRequest("DELETE", "/carts/"+ cart.Id.String() + "/items/2", nil)
 
 	if err != nil {
@@ -64,41 +61,21 @@ func TestApi_DeleteItem(t *testing.T) {
 
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusCreated, response.Code)
-	var cartFromApi domain.Cart
+	var cartFromApi Cart
 	json.Unmarshal(response.Body.Bytes(), &cartFromApi)
 	if cart.Id != cartFromApi.Id {
 		t.Errorf("Expected a cart with id %s. Got %s", cart.Id, cartFromApi.Id)
 	}
-	if len(cartFromApi.Items) != 1 {
-		t.Errorf("Expected an item list with size %s. Got %s", "1", strconv.Itoa(len(cartFromApi.Items)))
+	if len(cartFromApi.Orders) != 1 {
+		t.Errorf("Expected an item list with size %s. Got %s", "1", strconv.Itoa(len(cartFromApi.Orders)))
 	}
 }
 
 func TestApi_DeleteItems(t *testing.T) {
 	var cart = getCartContent()
-	service.CreateOrUpdate(&cart)
-	//type fields struct {
-	//	ApiRouter http.Handler
-	//}
-	//type args struct {
-	//	w http.ResponseWriter
-	//	r *http.Request
-	//}
-	//tests := []struct {
-	//	name   string
-	//	fields fields
-	//	args   args
-	//}{
-	//	// TODO: Add test cases.
-	//}
-	//for _, tt := range tests {
-	//	t.Run(tt.name, func(t *testing.T) {
-	//		a := &Api{
-	//			ApiRouter: tt.fields.ApiRouter,
-	//		}
-	//		print(a)
-	//	})
-	//}
+	CreateOrUpdate(&cart)
+	//req, err := http.NewRequest("DELETE", "/carts/"+ cart.Id.String() + "/items/2", nil)
+
 }
 
 func TestApi_GetArticles(t *testing.T) {
@@ -106,8 +83,8 @@ func TestApi_GetArticles(t *testing.T) {
 }
 
 func TestApi_GetCarts(t *testing.T) {
-	var cart = domain.Cart{Description: "Test description"}
-	service.CreateOrUpdate(&cart)
+	var cart = Cart{Description: "Test description"}
+	CreateOrUpdate(&cart)
 	req, err := http.NewRequest("GET", "/carts", nil)
 
 	if err != nil {
@@ -116,7 +93,7 @@ func TestApi_GetCarts(t *testing.T) {
 
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
-	var cartList[]domain.Cart
+	var cartList[]Cart
 	json.Unmarshal(response.Body.Bytes(), &cartList)
 	if body := response.Body.String(); body == "[]" {
 		t.Errorf("Expected an array. Got %s", body)
@@ -151,8 +128,8 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
-func getCartContent() domain.Cart {
-	var items = map[string]domain.Item{
+func getCartContent() Cart {
+	var items = map[string]Item{
 		"1":{
 			Id:"1",
 			Title:"Banana",
@@ -166,9 +143,9 @@ func getCartContent() domain.Cart {
 			Quantity: 1,
 		},
 	}
-	var cart = domain.Cart{
+	var cart = Cart{
 		Description: "Test cart",
-		Items: items,
+		Orders:      items,
 	}
 
 	return cart
