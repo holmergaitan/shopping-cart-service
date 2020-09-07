@@ -33,7 +33,7 @@ func (d *CartDao) CreateOrUpdate(cart *domain.Cart) *domain.Cart {
 }
 
 func (d *CartDao) RetrieveAll() []domain.Cart {
-	var carts []domain.Cart
+	var carts = make([]domain.Cart, 0)
 	for _, value := range d.Carts {
 		carts = append(carts, value)
 	}
