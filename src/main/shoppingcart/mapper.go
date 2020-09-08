@@ -31,7 +31,7 @@ func (m *Mapper) ToCartDtoList(carts []Cart) *[]CartDto{
 }
 
 func (m *Mapper) ToCartDto(cart Cart) *CartDto{
-	var orders = *m.Service.GetOrderByCartId(cart.ID)
+	var orders = cart.Orders
 	ordersDao := make([]OrderDto, len(orders))
 	for i, order := range orders{
 		ordersDao[i] = *m.ToOrderDto(order)
@@ -71,11 +71,11 @@ func (m *Mapper) ToOrderDtoList(orders []Order) *[]OrderDto {
 }
 
 func (m *Mapper) ToOrderDto(order Order) *OrderDto {
-	item := *m.Service.ItemsCache.GetById(order.ItemId)
-	itemDto := *m.ToItemDto(item)
+	item := order.Item
+	itemDto := m.ToItemDto(item)
 	orderDto := &OrderDto{
 		ID:       	order.ID,
-		Item:    	itemDto,
+		Item:    	*itemDto,
 		Quantity: 	order.Quantity,
 	}
 	return orderDto

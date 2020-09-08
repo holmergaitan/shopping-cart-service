@@ -14,8 +14,8 @@ func main() {
 	_ = db.AutoMigrate(&shoppingcart.Item{})
 	_ = db.AutoMigrate(&shoppingcart.Order{})
 	_ = db.AutoMigrate(&shoppingcart.Cart{})
-	var cartDao = &shoppingcart.CartDbDao{Database: db}
-	var itemDetailDao = &shoppingcart.OrderDbDao{Database: db}
+	var cartDao = &shoppingcart.CartDbRepository{Database: db}
+	var itemDetailDao = &shoppingcart.OrderDbRepository{Database: db}
 	var cache = &shoppingcart.ArticleDb{Database: db}
 	cache.Load()
 

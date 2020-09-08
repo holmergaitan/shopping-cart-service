@@ -21,8 +21,8 @@ func TestMain(m *testing.M) {
 	_ = db.AutoMigrate(&Item{})
 	_ = db.AutoMigrate(&Order{})
 	_ = db.AutoMigrate(&Cart{})
-	var cartDao = &CartDbDao{Database: db}
-	var itemDetailDao = &OrderDbDao{Database: db}
+	var cartDao = &CartDbRepository{Database: db}
+	var itemDetailDao = &OrderDbRepository{Database: db}
 	var cache = &ArticleDb{Database: db}
 	cache.Load()
 

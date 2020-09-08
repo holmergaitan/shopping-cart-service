@@ -11,7 +11,7 @@ import (
 type CacheInterface interface {
 	Load()
 
-	GetById(id string) *Item
+	GetById(id string) (*Item, error)
 
 	GetAll() *[]Item
 
@@ -32,10 +32,14 @@ func (db *ArticleDb) Load() {
 	db.Database.Create(&articleList)
 }
 
-func (db *ArticleDb) GetById(id string) *Item {
+func (db *ArticleDb) GetById(id string) (*Item, error) {
 	var item Item
-	db.Database.First(&item, id)
-	return &item
+	result := db.Database.First(&item, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &item, nil
 }
 
 func (db *ArticleDb) GetAll() *[]Item {

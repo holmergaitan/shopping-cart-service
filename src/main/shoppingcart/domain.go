@@ -11,6 +11,7 @@ type Order struct{
 	ID 			string		`gorm:"type:string;primary_key;"`
 	ItemId 		string
 	CartId		string
+	Item 		Item        `gorm:"foreignKey:ItemId"`
 	Quantity 	int
 }
 
