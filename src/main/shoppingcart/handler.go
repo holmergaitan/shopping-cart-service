@@ -54,8 +54,14 @@ func (a *Api) CreateCart(w http.ResponseWriter, r *http.Request){
 		buildErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
 	cart := a.Mapper.ToCarDomain(cartDto)
-	a.Service.CreateCart(cart)
+	_, err := a.Service.CreateCart(cart)
+	if err != nil {
+		buildErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	cartDto.ID = cart.ID
 	buildResponse(w, http.StatusCreated, cartDto)
 }
@@ -64,7 +70,6 @@ func (a *Api) AddItem(w http.ResponseWriter, r *http.Request){
 	itemDto := ItemDto{}
 	cartId := mux.Vars(r)["id"]
 	decoder := json.NewDecoder(r.Body)
-
 	defer r.Body.Close()
 	if err := decoder.Decode(&itemDto); err != nil {
 		buildErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -85,32 +90,43 @@ func (a *Api) AddItem(w http.ResponseWriter, r *http.Request){
 		a.Service.CreateOrder(order)
 	}
 
-	var cart = a.Service.GetCart(cartId)
+	var cart, _ = a.Service.GetCart(cartId)
 	var cartDto = a.Mapper.ToCartDto(*cart)
 	buildResponse(w, http.StatusCreated, cartDto)
 }
 
 func (a *Api) GetItems(w http.ResponseWriter, r *http.Request){
 	cartId, _ := mux.Vars(r)["id"]
-	//var cart = GetCart(cartId)
-	buildResponse(w, http.StatusCreated, cartId)
+	orders := a.Service.GetOrderByCartId(cartId)
+	orderDtoList := a.Mapper.ToOrderDtoList(*orders)
+	buildResponse(w, http.StatusCreated, orderDtoList)
 }
 
 func (a *Api) DeleteItems(w http.ResponseWriter, r *http.Request){
 	cartId, _ := mux.Vars(r)["id"]
-	//var cart = GetCart(cartId)
-	//cart.Orders = make([]Order, 0)
-	//CreateCart(cart)
-	buildResponse(w, http.StatusCreated, cartId)
+	deleted := a.Service.DeleteOrdersByCart(cartId)
+	cart, _ := a.Service.GetCart(cartId)
+	cartDto := a.Mapper.ToCartDto(*cart)
+	if deleted {
+		buildResponse(w, http.StatusOK, cartDto)
+	}else{
+		buildErrorResponse(w, http.StatusBadRequest, "Can not delete items")
+	}
 }
 
 func (a *Api) DeleteItem(w http.ResponseWriter, r *http.Request) {
-	//cartId, _ := uuid.Parse(mux.Vars(r)["id"])
-	//itemId, _ := mux.Vars(r)["itemId"]
-	//var cart = GetCart(cartId)
-	////delete(cart.Orders, itemId)
-	//Update(cart)
-	//buildResponse(w, http.StatusCreated, cart)
+	cartId, _ := mux.Vars(r)["id"]
+	itemId, _ := mux.Vars(r)["itemId"]
+	order := a.Service.GetOrderByCartAndItem(cartId, itemId)
+	if order.Quantity == 1{
+		a.Service.DeleteOrder(order)
+	}else{
+		order.Remove()
+		a.Service.UpdateOrder(order)
+	}
+	cart, _ := a.Service.GetCart(cartId)
+	cartDto := a.Mapper.ToCartDto(*cart)
+	buildResponse(w, http.StatusOK, cartDto)
 }
 
 func buildResponse(w http.ResponseWriter, status int, payload interface{}) {

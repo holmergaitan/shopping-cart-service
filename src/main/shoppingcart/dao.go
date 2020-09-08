@@ -6,10 +6,10 @@ import (
 	"sync"
 )
 
-type GenericDao interface {
-	Get(string) *Cart
+type CartDao interface {
+	Get(string) (*Cart, error)
 
-	Create(cart *Cart) *Cart
+	Create(cart *Cart) (*Cart, error)
 
 	Update(cart *Cart) *Cart
 
@@ -24,6 +24,10 @@ type OrderDao interface {
 	GetByCartId(orderId string) *[]Order
 
 	GetByCartAndItem(cartId string, itemId string) *Order
+
+	DeleteByCartId(id string) bool
+
+	Delete(order *Order) bool
 }
 
 type CartDbDao struct{
@@ -39,17 +43,25 @@ type CartMapDao struct {
 	mux sync.Mutex
 }
 
-func (d *CartDbDao) Get(id string) *Cart {
+func (d *CartDbDao) Get(id string) (*Cart, error) {
 	var cart Cart = Cart{}
-	d.Database.Where("id = ?", id).First(&cart)
-	return &cart
+	result := d.Database.Where("id = ?", id).First(&cart)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &cart, nil
 }
 
-func (d *CartDbDao) Create(cart *Cart) *Cart {
+func (d *CartDbDao) Create(cart *Cart) (*Cart, error) {
 	var id, _ = uuid.NewRandom()
 	cart.ID = id.String()
-	d.Database.Create(cart)
-	return cart
+	result := d.Database.Create(cart)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return cart, nil
 }
 
 func (d *CartDbDao) Update(cart *Cart) *Cart {
@@ -89,6 +101,30 @@ func (o *OrderDbDao) GetByCartAndItem(cartId string, itemId string) *Order {
 	return &orderDb
 }
 
+func (o *OrderDbDao) DeleteByCartId(cartId string) bool {
+	var count int64
+	o.Database.Delete(Order{}, "cart_id = ?", cartId)
+	o.Database.Table("orders").Where("cart_id = ?", cartId).Count(&count)
+
+	if count != 0 {
+		return false
+	}
+
+	return true
+}
+
+func (o *OrderDbDao) Delete(order *Order) bool{
+	var count int64
+	o.Database.Delete(&order)
+	o.Database.Table("orders").Where("id = ?", order.ID).Count(&count)
+
+	if count != 0 {
+		return false
+	}
+
+	return true
+}
+
 func (d *CartMapDao) Create(cart *Cart) *Cart {
 	return &Cart{}
 }
@@ -114,7 +150,3 @@ func (d *CartMapDao) Get(id string) *Cart {
 	elem, _ := d.Carts[id]
 	return &elem
 }
-
-//func (d *CartMapDao) GetByCartAndItem(cartId string, itemId string) *Order {
-//	return nil
-//}

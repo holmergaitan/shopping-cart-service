@@ -18,8 +18,12 @@ func (i *Order) Increment()  {
 	i.Quantity++
 }
 
+func (i *Order) Remove()  {
+	i.Quantity--
+}
+
 type Cart struct {
 	ID          string  `gorm:"type:string;primary_key;"`
 	Description string
-	Orders      []Order
+	Orders      []Order `gorm:"foreignKey:CartId"`
 }

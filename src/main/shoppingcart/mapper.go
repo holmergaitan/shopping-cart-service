@@ -17,9 +17,9 @@ type OrderDto struct{
 }
 
 type CartDto struct {
-	ID          string  `json:"id"`
-	Description string  `json:"description"`
-	Orders      []OrderDto `json:"orders"`
+	ID          string  	`json:"id"`
+	Description string  	`json:"description"`
+	Orders      []OrderDto 	`json:"orders"`
 }
 
 func (m *Mapper) ToCartDtoList(carts []Cart) *[]CartDto{
@@ -59,6 +59,15 @@ func (m *Mapper) ToCarDomain(cartDto CartDto) *Cart{
 	}
 
 	return cart
+}
+
+
+func (m *Mapper) ToOrderDtoList(orders []Order) *[]OrderDto {
+	orderDtoList := make([]OrderDto, len(orders))
+	for i, cart := range orders{
+		orderDtoList[i] = *m.ToOrderDto(cart)
+	}
+	return &orderDtoList
 }
 
 func (m *Mapper) ToOrderDto(order Order) *OrderDto {

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/google/uuid"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,7 +16,19 @@ import (
 var s Config
 
 func TestMain(m *testing.M) {
-	s = New()
+	dsn := "root:test@123@tcp(127.0.0.1:3306)/shopping_cart_test?charset=utf8mb4&parseTime=True&loc=Local"
+	db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	_ = db.AutoMigrate(&Item{})
+	_ = db.AutoMigrate(&Order{})
+	_ = db.AutoMigrate(&Cart{})
+	var cartDao = &CartDbDao{Database: db}
+	var itemDetailDao = &OrderDbDao{Database: db}
+	var cache = &ArticleDb{Database: db}
+	cache.Load()
+
+	var service = Service{CartDao: cartDao, OrderDao:itemDetailDao, ItemsCache: cache}
+	var mapper = Mapper{Service: service}
+	s = New(service, mapper)
 	code := m.Run()
 	os.Exit(code)
 }
@@ -128,27 +142,27 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
-func getCartContent() Cart {
-	var items = map[string]Item{
-		"1":{
-			Id:"1",
-			Title:"Banana",
-			Price:"2.50",
-			Quantity: 1,
-		},
-		"2":{
-			Id:"2",
-			Title:"Apple",
-			Price:"3.20",
-			Quantity: 1,
-		},
-	}
-	var cart = Cart{
-		Description: "Test cart",
-		Orders:      items,
-	}
-
-	return cart
-}
+//func getCartContent() Cart {
+//	var items = map[string]Item{
+//		"1":{
+//			Id:"1",
+//			Title:"Banana",
+//			Price:"2.50",
+//			Quantity: 1,
+//		},
+//		"2":{
+//			Id:"2",
+//			Title:"Apple",
+//			Price:"3.20",
+//			Quantity: 1,
+//		},
+//	}
+//	var cart = Cart{
+//		Description: "Test cart",
+//		Orders:      items,
+//	}
+//
+//	return cart
+//}
 
 

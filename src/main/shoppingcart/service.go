@@ -1,16 +1,16 @@
 package shoppingcart
 
 type Service struct{
-	CartDao    GenericDao
+	CartDao    CartDao
 	OrderDao   OrderDao
 	ItemsCache CacheInterface
 }
 
-func (s *Service) CreateCart(c *Cart) *Cart {
+func (s *Service) CreateCart(c *Cart) (*Cart, error) {
 	return s.CartDao.Create(c)
 }
 
-func (s *Service) GetCart(id string) *Cart {
+func (s *Service) GetCart(id string) (*Cart, error) {
 	return s.CartDao.Get(id)
 }
 
@@ -30,6 +30,14 @@ func (s *Service) UpdateOrder (i *Order) *Order {
 	return s.OrderDao.Update(i)
 }
 
+func (s *Service) DeleteOrder (i *Order) bool {
+	return s.OrderDao.Delete(i)
+}
+
 func (s *Service) GetOrderByCartId (cartId string) *[]Order {
 	return s.OrderDao.GetByCartId(cartId)
+}
+
+func (s *Service) DeleteOrdersByCart(cartId string) bool {
+	return s.OrderDao.DeleteByCartId(cartId)
 }
