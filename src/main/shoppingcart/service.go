@@ -1,9 +1,9 @@
 package shoppingcart
 
 type Service struct{
-	CartDao    CartRepository
-	OrderDao   OrderRepository
-	ItemsCache CacheInterface
+	CartDao    	CartRepository
+	OrderDao   	OrderRepository
+	ItemsCache 	CacheInterface
 }
 
 func (s *Service) CreateCart(c *Cart) (*Cart, error) {
@@ -14,8 +14,18 @@ func (s *Service) GetCart(id string) (*Cart, error) {
 	return s.CartDao.GetCart(id)
 }
 
-func (s *Service) GetCarts() *[]Cart {
-	return s.CartDao.GetAllCarts()
+func (s *Service) GetCarts() (*[]Cart, error) {
+	carts, err := s.CartDao.GetAllCarts()
+	var cartList = make([]Cart, len(*carts))
+	for i, cart := range *carts{
+		orders, _ := s.GetOrderByCartId(cart.ID)
+		cartList[i] = Cart{
+			ID: cart.ID,
+			Description: cart.Description,
+			Orders: orders,
+		}
+	}
+	return &cartList, err
 }
 
 func (s *Service) CreateOrder(detail *Order) (*Order, error) {
@@ -26,7 +36,7 @@ func (s *Service) GetOrderByCartAndItem(cartId string, itemId string) (*Order, e
 	return s.OrderDao.GetOrderByCartAndItemId(cartId, itemId)
 }
 
-func (s *Service) UpdateOrder (i *Order) *Order {
+func (s *Service) UpdateOrder(i *Order) (*Order, error) {
 	return s.OrderDao.UpdateOrder(i)
 }
 
@@ -35,7 +45,7 @@ func (s *Service) DeleteOrder(i *Order) error {
 }
 
 func (s *Service) GetOrderByCartId(cartId string) (*[]Order, error) {
-	return s.OrderDao.GetOrderByCartId(cartId)
+	return s.OrderDao.GetOrdersByCartId(cartId)
 }
 
 func (s *Service) DeleteOrdersByCart(cartId string) error {
@@ -43,5 +53,5 @@ func (s *Service) DeleteOrdersByCart(cartId string) error {
 }
 
 func (s *Service) GetItem(id string) (*Item, error) {
-	return s.ItemsCache.GetById(id)
+	return s.ItemsCache.GetItemById(id)
 }

@@ -9,13 +9,13 @@ import (
 )
 
 type CacheInterface interface {
-	Load()
+	LoadAllItems()
 
-	GetById(id string) (*Item, error)
+	GetItemById(id string) (*Item, error)
 
-	GetAll() *[]Item
+	GetAllItems() *[]Item
 
-	LoadByCart(cartId string) []Item
+	LoadItemsByCartId(cartId string) []Item
 }
 
 type ArticleDb struct {
@@ -27,12 +27,12 @@ type ArticlesCache struct {
 	Loaded bool
 }
 
-func (db *ArticleDb) Load() {
+func (db *ArticleDb) LoadAllItems() {
 	var articleList = load()
 	db.Database.Create(&articleList)
 }
 
-func (db *ArticleDb) GetById(id string) (*Item, error) {
+func (db *ArticleDb) GetItemById(id string) (*Item, error) {
 	var item Item
 	result := db.Database.First(&item, id)
 	if result.Error != nil {
@@ -42,13 +42,13 @@ func (db *ArticleDb) GetById(id string) (*Item, error) {
 	return &item, nil
 }
 
-func (db *ArticleDb) GetAll() *[]Item {
+func (db *ArticleDb) GetAllItems() *[]Item {
 	var items = make([]Item, 0)
 	db.Database.Find(&items)
 	return &items
 }
 
-func (db *ArticleDb) LoadByCart(cartId string)[]Item{
+func (db *ArticleDb) LoadItemsByCartId(cartId string)[]Item {
 	var items = make([]Item, 0)
 	db.Database.
 		Select("*").

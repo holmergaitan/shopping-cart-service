@@ -3,6 +3,7 @@ package shoppingcart
 import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"sync"
 )
 
@@ -11,17 +12,17 @@ type CartRepository interface {
 
 	SaveCart(cart *Cart) (*Cart, error)
 
-	UpdateCart(cart *Cart) *Cart
+	UpdateCart(cart *Cart) (*Cart, error)
 
-	GetAllCarts() *[]Cart
+	GetAllCarts() (*[]Cart, error)
 }
 
 type OrderRepository interface {
 	CreateOrder(order *Order) (*Order, error)
 
-	UpdateOrder(order *Order) *Order
+	UpdateOrder(order *Order) (*Order, error)
 
-	GetOrderByCartId(orderId string) (*[]Order, error)
+	GetOrdersByCartId(orderId string) (*[]Order, error)
 
 	GetOrderByCartAndItemId(cartId string, itemId string) (*Order, error)
 
@@ -64,16 +65,16 @@ func (d *CartDbRepository) SaveCart(cart *Cart) (*Cart, error) {
 	return cart, nil
 }
 
-func (d *CartDbRepository) UpdateCart(cart *Cart) *Cart {
+func (d *CartDbRepository) UpdateCart(cart *Cart) (*Cart, error) {
 	var cartDb Cart
-	d.Database.Model(&cartDb).Updates(cart)
-	return cart
+	result := d.Database.Model(&cartDb).Updates(cart)
+	return cart, result.Error
 }
 
-func (d *CartDbRepository) GetAllCarts() *[]Cart {
+func (d *CartDbRepository) GetAllCarts() (*[]Cart, error) {
 	var carts = make([]Cart, 0)
-	d.Database.Preload("Orders").Find(&carts)
-	return &carts
+	result := d.Database.Preload(clause.Associations).Find(&carts)
+	return &carts, result.Error
 }
 
 func (o *OrderDbRepository) CreateOrder(order *Order) (*Order, error) {
@@ -87,21 +88,24 @@ func (o *OrderDbRepository) CreateOrder(order *Order) (*Order, error) {
 	return order, nil
 }
 
-func (o *OrderDbRepository) UpdateOrder(order *Order) *Order {
+func (o *OrderDbRepository) UpdateOrder(order *Order) (*Order, error) {
 	var orderDb Order
-	o.Database.Model(&orderDb).Where("id = ?", order.ID).Updates(order)
-	return order
+	result := o.Database.Model(&orderDb).Where("id = ?", order.ID).Updates(order)
+	return order, result.Error
 }
 
-func (o *OrderDbRepository) GetOrderByCartId(orderId string) (*[]Order, error) {
+func (o *OrderDbRepository) GetOrdersByCartId(orderId string) (*[]Order, error) {
 	var orders = make([]Order, 0)
-	result := o.Database.Where("cart_id = ?", orderId).Find(&orders)
+	result := o.Database.Preload(clause.Associations).
+		Where("cart_id = ?", orderId).
+		Find(&orders)
 	return &orders, result.Error
 }
 
 func (o *OrderDbRepository) GetOrderByCartAndItemId(cartId string, itemId string) (*Order, error) {
 	var orderDb Order
-	result := o.Database.Where("cart_id = ? and item_id = ? ", cartId, itemId).First(&orderDb)
+	result := o.Database.Preload(clause.Associations).
+		Where("cart_id = ? and item_id = ? ", cartId, itemId).First(&orderDb)
 	return &orderDb, result.Error
 }
 
@@ -113,30 +117,4 @@ func (o *OrderDbRepository) DeleteOrderByCartId(cartId string) error {
 func (o *OrderDbRepository) DeleteOrder(order *Order) error {
 	result := o.Database.Delete(&order)
 	return result.Error
-}
-
-func (d *CartMapRepository) Create(cart *Cart) *Cart {
-	return &Cart{}
-}
-
-func (d *CartMapRepository) Update(cart *Cart) *Cart {
-	if cart.ID == "" {
-		id, _ := uuid.NewRandom()
-		cart.ID = id.String()
-	}
-	d.Carts[cart.ID] = *cart
-	return cart
-}
-
-func (d *CartMapRepository) GetAll() *[]Cart {
-	var carts = make([]Cart, 0)
-	for _, value := range d.Carts {
-		carts = append(carts, value)
-	}
-	return &carts
-}
-
-func (d *CartMapRepository) Get(id string) *Cart {
-	elem, _ := d.Carts[id]
-	return &elem
 }

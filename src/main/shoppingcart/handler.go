@@ -36,15 +36,18 @@ func (a *Api) Router() http.Handler {
 }
 
 func (a *Api) GetCarts(w http.ResponseWriter, r *http.Request) {
-	var content = a.Service.GetCarts()
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(a.Mapper.ToCartDtoList(*content))
+	var content, err= a.Service.GetCarts()
+	if err != nil{
+		buildErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	buildResponse(w, http.StatusOK, a.Mapper.ToCartDtoList(*content))
 }
 
 func (a *Api) GetArticles(w http.ResponseWriter, r *http.Request){
-	var content = a.Service.ItemsCache.GetAll()
+	var content = a.Service.ItemsCache.GetAllItems()
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(a.Mapper.ToItemDtoList(*content))
+	buildResponse(w, http.StatusOK, a.Mapper.ToItemDtoList(*content))
 }
 
 func (a *Api) SaveCart(w http.ResponseWriter, r *http.Request){
@@ -70,7 +73,7 @@ func (a *Api) SaveCart(w http.ResponseWriter, r *http.Request){
 func (a *Api) AddItem(w http.ResponseWriter, r *http.Request){
 	itemDto := ItemDto{}
 	cartId := mux.Vars(r)["id"]
-	var cart, carErr = a.Service.GetCart(cartId)
+	var _, carErr = a.Service.GetCart(cartId)
 	if carErr != nil{
 		buildErrorResponse(w, http.StatusNotFound,
 			fmt.Sprintf("Cart with id %s not found", cartId))
@@ -98,9 +101,9 @@ func (a *Api) AddItem(w http.ResponseWriter, r *http.Request){
 		a.Service.OrderDao.UpdateOrder(order)
 	}else {
 		order = &Order{
-			ItemId:     item.ID,
-			CartId: 	cartId,
-			Quantity: 	1,
+			ItemId:   item.ID,
+			CartId:   cartId,
+			Quantity: 1,
 		}
 		_, orderErr := a.Service.CreateOrder(order)
 		if orderErr != nil{
@@ -109,8 +112,8 @@ func (a *Api) AddItem(w http.ResponseWriter, r *http.Request){
 		}
 	}
 
-	var cartDto = a.Mapper.ToCartDto(*cart)
-	buildResponse(w, http.StatusCreated, cartDto)
+	var orderDto = a.Mapper.ToOrderDto(*order)
+	buildResponse(w, http.StatusCreated, orderDto)
 }
 
 func (a *Api) GetItems(w http.ResponseWriter, r *http.Request){
@@ -182,8 +185,4 @@ func buildResponse(w http.ResponseWriter, status int, payload interface{}) {
 
 func buildErrorResponse(w http.ResponseWriter, code int, message string) {
 	buildResponse(w, code, map[string]string{"error": message})
-}
-
-func toCartDto(){
-
 }
